@@ -8,6 +8,7 @@ from shutil import copyfile
 from toscaparser.common.exception import ExceptionCollector
 from toscatranslator.common.exception import ProviderConfigurationParameterError, ConditionFileError, \
     ConfigurationParameterError
+from toscaparser.functions import GetOperationOutput, GetInput
 
 from toscatranslator.common import utils
 from toscatranslator.common.tosca_reserved_keys import PARAMETERS, VALUE, EXTRA, SOURCE, INPUTS, NODE_FILTER, NAME, \
@@ -181,12 +182,19 @@ class AnsibleConfigurationTool(ConfigurationTool):
         return elements_queue, software_queue
 
     def replace_all_get_functions(self, data):
-        if isinstance(data, dict):
-            if len(data) == 1 and next(iter(data.keys())) == GET_OPERATION_OUTPUT:
+        if isinstance(data, GetOperationOutput):
+            full_op_name = '_'.join(data.args[:3]).lower()
+            output_id = self.global_operations_info[full_op_name][OUTPUT_IDS][data.args[-1]]
+            return self.rap_ansible_variable(output_id)
+        elif isinstance(data, GetInput):
+            output_id = self.global_variables['input_'+data.args[0]]
+            return self.rap_ansible_variable(output_id)
+        elif isinstance(data, dict):
+            if len(data) == 1 and data.get(GET_OPERATION_OUTPUT, None) != None:
                 full_op_name = '_'.join(data[GET_OPERATION_OUTPUT][:3]).lower()
                 output_id = self.global_operations_info[full_op_name][OUTPUT_IDS][data[GET_OPERATION_OUTPUT][-1]]
                 return self.rap_ansible_variable(output_id)
-            if len(data) == 1 and next(iter(data.keys())) == GET_INPUT:
+            if len(data) == 1 and data.get(GET_INPUT, None) != None:
                 output_id = self.global_variables['input_'+data[GET_INPUT]]
                 return self.rap_ansible_variable(output_id)
 

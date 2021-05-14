@@ -133,12 +133,6 @@ def restructure_value(mapping_value, self, if_format_str=True, if_upper=True):
                     return
                 flat_mapping_value[key] = restructured_value
 
-        # NOTE: the case when value has keys ERROR and REASON
-        if flat_mapping_value.get(ERROR, False):
-            ExceptionCollector.appendException(UnsupportedToscaParameterUsage(
-                what=flat_mapping_value.get(REASON).format(self=self)
-            ))
-
         # NOTE: the case when value has keys PARAMETER, VALUE, KEYNAME
         parameter = flat_mapping_value.get(PARAMETER)
         value = flat_mapping_value.get(VALUE)
@@ -491,6 +485,13 @@ def restructure_mapping(tosca_elements_map_to_provider, node, self):
         r_parent.extend(r)
         r = r_parent
     for i in range(len(r)):
+        # NOTE: the case when value has keys ERROR and REASON
+        if r[i][MAP_KEY].get(ERROR, False):
+            ExceptionCollector.appendException(UnsupportedToscaParameterUsage(
+                what=r[i][MAP_KEY].get(REASON).format(self=self)
+            ))
+            return r
+
         parameter_node_type = get_node_type_from_parameter(r[i][PARAMETER])
         mapping_node_type = get_node_type_from_parameter(r[i][MAP_KEY][PARAMETER])
         if parameter_node_type == mapping_node_type and parameter_node_type != node.type:
@@ -540,7 +541,9 @@ def translate_node_from_tosca(restructured_mapping, tpl_name, self):
                 if not keyname:
                     (_, _, type_name) = utils.tosca_type_parse(node_type)
                     if not type_name:
-                        ExceptionCollector.appendException()
+                        ExceptionCollector.appendException(ValidationError(
+                            what=type_name
+                        ))
                     keyname = self[KEYNAME] + "_" + utils.snake_case(type_name)
                 node_tpl_with_name = {keyname: {node_type: tpl}}
                 resulted_structure = utils.deep_update_dict(resulted_structure, node_tpl_with_name)

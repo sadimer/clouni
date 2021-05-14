@@ -3,7 +3,7 @@ from toscaparser.common.exception import ExceptionCollector
 
 from toscatranslator.common.tosca_reserved_keys import REQUIREMENT_DEFAULT_PARAMS, RELATIONSHIP, \
     NAME_SUFFIX, ID_SUFFIX, NAME, ID, NODE_FILTER, CAPABILITIES, PROPERTIES, GET_FUNCTIONS, PARAMETERS, SOURCE, EXTRA, \
-    VALUE, EXECUTOR, GET_OPERATION_OUTPUT, SELF
+    VALUE, EXECUTOR
 
 import six, copy
 

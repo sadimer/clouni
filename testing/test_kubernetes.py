@@ -4,7 +4,7 @@ import os
 
 from toscaparser.common.exception import MissingRequiredFieldError, ValidationError
 from testing.base import BaseAnsibleProvider
-from toscatranslator import shell
+from shell_clouni import shell
 from toscatranslator.common.tosca_reserved_keys import TOSCA_DEFINITIONS_VERSION, TOPOLOGY_TEMPLATE, NODE_TEMPLATES, TYPE
 
 from toscatranslator.common.utils import get_project_root_path
@@ -54,21 +54,21 @@ class TestKubernetesOutput(unittest.TestCase, BaseAnsibleProvider):
 
     # testing a Service
     def test_private_address(self):
-        template_1 = self.update_template_attribute(self.template, self.NODE_NAME, {'private_address': '10.233.0.2'})
+        template_1 = self.update_template_property(self.template, self.NODE_NAME, {'private_address': '10.233.0.2'})
         manifest = self.update_port(template_1)
         self.assertEqual(manifest[0].get('spec'), {'clusterIP': '10.233.0.2', 'ports': [{'port': 888}]})
 
 
     def test_private_address_error(self):
         with self.assertRaises(ValidationError):
-            template = self.update_template_attribute(self.template, self.NODE_NAME,
+            template = self.update_template_property(self.template, self.NODE_NAME,
                                                       {'private_address': '192.168.12.2578'})
             self.update_port(template)
 
     # FIXME:  bug 7606
     @unittest.expectedFailure
     def test_private_address_with_protocol(self):
-        template = self.update_template_attribute(self.template, self.NODE_NAME, {'private_address': '192.168.12.25'})
+        template = self.update_template_property(self.template, self.NODE_NAME, {'private_address': '192.168.12.25'})
         testing_parameter = {'endpoint': {'properties': {'port': 888, 'protocol': 'TCP'}}}
         template = self.update_template_capability(template, self.NODE_NAME, testing_parameter)
         manifest = self.get_k8s_output(template)
@@ -76,22 +76,22 @@ class TestKubernetesOutput(unittest.TestCase, BaseAnsibleProvider):
                          {'clusterIP': '192.168.12.25', 'ports': [{'port': 888, 'protocol': 'TCP'}]})
 
     def test_public_address(self):
-        template = self.update_template_attribute(self.template, self.NODE_NAME, {'public_address': '192.168.12.25'})
+        template = self.update_template_property(self.template, self.NODE_NAME, {'public_address': '192.168.12.25'})
         manifest = self.update_port(template)
         self.assertEqual(manifest[0].get('spec'), {'externalIPs': ['192.168.12.25'], 'ports': [{'port': 888}]})
 
     def test_public_private_address(self):
-        template = self.update_template_attribute(self.template, self.NODE_NAME, {'public_address': '192.168.12.25'})
-        template = self.update_template_attribute(template, self.NODE_NAME, {'private_address': '10.233.0.2'})
+        template = self.update_template_property(self.template, self.NODE_NAME, {'public_address': '192.168.12.25'})
+        template = self.update_template_property(template, self.NODE_NAME, {'private_address': '10.233.0.2'})
         manifest = self.update_port(template)
         self.assertEqual(manifest[0].get('spec'),
                          {'externalIPs': ['192.168.12.25'], 'clusterIP': '10.233.0.2', 'ports': [{'port': 888}]})
 
     def test_service_without_port(self):
         with self.assertRaises(MissingRequiredFieldError):
-            template = self.update_template_attribute(self.template, self.NODE_NAME,
+            template = self.update_template_property(self.template, self.NODE_NAME,
                                                       {'public_address': '192.168.12.25'})
-            template = self.update_template_attribute(template, self.NODE_NAME, {'private_address': '192.168.12.24'})
+            template = self.update_template_property(template, self.NODE_NAME, {'private_address': '192.168.12.24'})
             self.get_k8s_output(template)
     # FIXME:  bug 7606
     @unittest.expectedFailure

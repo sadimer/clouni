@@ -19,6 +19,7 @@ from toscatranslator.providers.common.translator_to_provider import translate as
 from toscatranslator.providers.common.provider_resource import ProviderResource
 
 SEPARATOR = '.'
+PROVIDER_DEFINITION_FILE = "TOSCA_provider_definition_1_0.yaml"
 
 
 class ProviderToscaTemplate(object):
@@ -50,7 +51,7 @@ class ProviderToscaTemplate(object):
         # toscaparser.topology_template:TopologyTemplate
         self.tosca_topology_template = self.full_type_definitions(self.tosca_parser_template.topology_template)
 
-        import_definition_file = ImportsLoader([self.definition_file()], None, list(SERVICE_TEMPLATE_KEYS),
+        import_definition_file = ImportsLoader(self.definition_files(), None, list(SERVICE_TEMPLATE_KEYS),
                                                self.tosca_topology_template.tpl)
         self.full_provider_defs = copy.copy(self.tosca_topology_template.custom_defs)
         self.provider_defs = import_definition_file.get_custom_defs()
@@ -324,17 +325,18 @@ class ProviderToscaTemplate(object):
         for rel in self.relationship_templates:
             self.search_get_function(rel.name, rel.entity_tpl)
 
-    def definition_file(self):
+    def definition_files(self):
         file_definition = self.provider_config.config['main'][self.TOSCA_ELEMENTS_DEFINITION_FILE]
         if not os.path.isabs(file_definition):
             file_definition = os.path.join(self.provider_config.config_directory, file_definition)
+        file_provider_definition = os.path.join(os.path.dirname(__file__), PROVIDER_DEFINITION_FILE)
 
         if not os.path.isfile(file_definition):
             ExceptionCollector.appendException(ProviderFileError(
                 what=file_definition
             ))
 
-        return file_definition
+        return [file_definition, file_provider_definition]
 
     def tosca_elements_map_to_provider(self):
         tosca_elements_map_file = self.provider_config.config['main'][self.TOSCA_ELEMENTS_MAP_FILE]

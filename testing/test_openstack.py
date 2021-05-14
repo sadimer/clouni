@@ -1,10 +1,12 @@
 import unittest
+
 from testing.base import TestAnsibleProvider
+from shell_clouni import shell
+
 import copy
 import os
 import re
 
-from toscatranslator import shell
 
 SERVER_MODULE_NAME = 'os_server'
 PORT_MODULE_NAME = 'os_port'
@@ -60,12 +62,6 @@ class TestAnsibleOpenStackOutput (unittest.TestCase, TestAnsibleProvider):
         file_path = os.path.join('examples', 'tosca-server-example.yaml')
         shell.main(['--template-file', file_path, '--cluster-name', 'test', '--provider', self.PROVIDER, '--async',
                     '--delete', '--extra', 'retries=3', 'async=60', 'poll=0', 'delay=1'])
-
-    def test_full_translating_hostedon(self):
-        file_path = os.path.join('examples', 'tosca-server-example-hostedon.yaml')
-        file_output_path = os.path.join('examples', 'tosca-server-example-hostedon-output.yaml')
-        shell.main(['--template-file', file_path, '--cluster-name', 'test', '--provider', self.PROVIDER,
-                    '--output-file', file_output_path])
 
     def test_server_name(self):
         template = copy.deepcopy(self.DEFAULT_TEMPLATE)
@@ -276,7 +272,7 @@ class TestAnsibleOpenStackOutput (unittest.TestCase, TestAnsibleProvider):
             "public_address": "10.100.115.15",
             "private_address": "192.168.12.25"
         }
-        template = self.update_template_attribute(template, self.NODE_NAME, testing_parameter)
+        template = self.update_template_property(template, self.NODE_NAME, testing_parameter)
         playbook = self.get_ansible_create_output(template)
 
         self.assertIsNotNone(next(iter(playbook), {}).get('tasks'))
@@ -292,11 +288,13 @@ class TestAnsibleOpenStackOutput (unittest.TestCase, TestAnsibleProvider):
         template = copy.deepcopy(self.DEFAULT_TEMPLATE)
         testing_parameter = {
             "public_address": "10.100.149.15",
-            "network": {
-                "default": "net-for-intra-sandbox"
+            "networks": {
+                "default": {
+                    "network_name": "net-for-intra-sandbox"
+                }
             }
         }
-        template = self.update_template_attribute(template, self.NODE_NAME, testing_parameter)
+        template = self.update_template_property(template, self.NODE_NAME, testing_parameter)
         template['node_types'] = {
             'clouni.nodes.ServerExample': {
                 'derived_from': 'tosca.nodes.SoftwareComponent'
@@ -377,7 +375,7 @@ class TestAnsibleOpenStackOutput (unittest.TestCase, TestAnsibleProvider):
                 "get_input": "public_address"
             }
         }
-        template = self.update_template_attribute(template, self.NODE_NAME, testing_parameter)
+        template = self.update_template_property(template, self.NODE_NAME, testing_parameter)
         playbook = self.get_ansible_create_output(template)
         self.assertIsNotNone(next(iter(playbook), {}).get('tasks'))
 

@@ -1,12 +1,16 @@
-from testing.base import TestAnsibleProvider, shell
-import copy
 import unittest
-import os, yaml
 
+from testing.base import TestAnsibleProvider
+from shell_clouni import shell
+
+import copy
+import os
+import yaml
+
+from toscatranslator.common.tosca_reserved_keys import TOPOLOGY_TEMPLATE, NODE_TEMPLATES, PROPERTIES
 
 INSTANCE_MODULE_NAME = 'ec2_instance'
 SEC_GROUP_MODULE_NAME = 'ec2_group'
-from toscatranslator.common.tosca_reserved_keys import TOPOLOGY_TEMPLATE, NODE_TEMPLATES, ATTRIBUTES
 PUBLIC_ADDRESS = 'public_address'
 
 
@@ -21,7 +25,8 @@ class TestAnsibleAmazonOutput (unittest.TestCase, TestAnsibleProvider):
         file_path = os.path.join('examples', 'tosca-server-example.yaml')
         template_raw = self.read_template(file_path)
         template = yaml.load(template_raw)
-        template[TOPOLOGY_TEMPLATE][NODE_TEMPLATES][self.NODE_NAME][ATTRIBUTES].pop(PUBLIC_ADDRESS)
+        template[TOPOLOGY_TEMPLATE][NODE_TEMPLATES][self.NODE_NAME][PROPERTIES].pop(PUBLIC_ADDRESS)
+        template[TOPOLOGY_TEMPLATE][NODE_TEMPLATES][self.NODE_NAME][PROPERTIES].pop('networks')
         playbook = self.get_ansible_create_output(template)
         self.assertIsNotNone(playbook)
 
@@ -63,9 +68,8 @@ class TestAnsibleAmazonOutput (unittest.TestCase, TestAnsibleProvider):
         for task in tasks:
             if task.get(INSTANCE_MODULE_NAME):
                 self.assertIsNotNone(task[INSTANCE_MODULE_NAME].get('name'))
-                self.assertIsNotNone(task[INSTANCE_MODULE_NAME].get("network", {}).get('interface', {})
-                                     .get('properties', {}).get('private_ip_address'))
-                server_private_ip = task[INSTANCE_MODULE_NAME]['network']['interface']['properties']['private_ip_address']
+                self.assertIsNotNone(task[INSTANCE_MODULE_NAME].get("network", {}).get('private_ip_address'))
+                server_private_ip = task[INSTANCE_MODULE_NAME]['network']['private_ip_address']
                 if testing_value:
                     self.assertEqual(server_private_ip, testing_value)
         self.assertIsNotNone(server_private_ip)
@@ -123,3 +127,10 @@ class TestAnsibleAmazonOutput (unittest.TestCase, TestAnsibleProvider):
                 self.assertIsNotNone(task[INSTANCE_MODULE_NAME].get('name'))
                 server_name = task[INSTANCE_MODULE_NAME]['name']
         self.assertIsNotNone(server_name)
+
+    @unittest.expectedFailure
+    def test_network_name(self):
+        super(TestAnsibleAmazonOutput, self).test_network_name()
+
+    def test_host_capabilities(self):
+        super(TestAnsibleAmazonOutput, self).test_host_capabilities()

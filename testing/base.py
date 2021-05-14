@@ -1,5 +1,5 @@
 from toscatranslator.common.translator_to_configuration_dsl import translate as common_translate
-from toscatranslator import shell
+from shell_clouni import shell
 import os
 import yaml
 import copy
@@ -187,7 +187,7 @@ class TestAnsibleProvider(BaseAnsibleProvider):
             testing_parameter = {
                 "private_address": testing_value
             }
-            template = self.update_template_attribute(template, self.NODE_NAME, testing_parameter)
+            template = self.update_template_property(template, self.NODE_NAME, testing_parameter)
             playbook = self.get_ansible_create_output(template)
 
             assert next(iter(playbook), {}).get('tasks')
@@ -202,7 +202,7 @@ class TestAnsibleProvider(BaseAnsibleProvider):
             testing_parameter = {
                 "public_address": testing_value
             }
-            template = self.update_template_attribute(template, self.NODE_NAME, testing_parameter)
+            template = self.update_template_property(template, self.NODE_NAME, testing_parameter)
             playbook = self.get_ansible_create_output(template)
 
             assert next(iter(playbook), {}).get('tasks')
@@ -221,7 +221,7 @@ class TestAnsibleProvider(BaseAnsibleProvider):
                     }
                 }
             }
-            template = self.update_template_attribute(template, self.NODE_NAME, testing_parameter)
+            template = self.update_template_property(template, self.NODE_NAME, testing_parameter)
             playbook = self.get_ansible_create_output(template)
 
             assert next(iter(playbook), {}).get('tasks')
@@ -253,9 +253,7 @@ class TestAnsibleProvider(BaseAnsibleProvider):
                     "properties": {
                         "protocol": "tcp",
                         "port": 22,
-                        "initiator": "target"
-                    },
-                    "attributes": {
+                        "initiator": "target",
                         "ip_address": "0.0.0.0"
                     }
                 }

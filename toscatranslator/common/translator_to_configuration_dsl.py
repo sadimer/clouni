@@ -61,6 +61,7 @@ def translate(template_file, validate_only, provider, configuration_tool, cluste
         for i in range(len(template[IMPORTS])):
             template[IMPORTS][i] = os.path.abspath(template[IMPORTS][i])
         template[IMPORTS].append(default_import_file)
+
     tosca_parser_template_object = ToscaTemplate(yaml_dict_tpl=template, a_file=a_file)
 
     if validate_only:
