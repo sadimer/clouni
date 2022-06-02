@@ -79,6 +79,8 @@ def run_and_finish(ansible_playbook, node, q):
     run_ansible(ansible_playbook)
     if node is not None:
         q.put(node.name)
+    else:
+        q.put('Done')
 
 
 def parallel_run_ansible(ansible_playbook, node, q):

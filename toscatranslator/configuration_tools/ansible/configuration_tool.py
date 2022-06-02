@@ -164,6 +164,10 @@ class AnsibleConfigurationTool(ConfigurationTool):
                 PATH: ids_file_path,
                 STATE: 'absent'}}))
             parallel_run_ansible([last_play], None, q)
+            done = q.get()
+            if done != 'Done':
+                logging.error("Something wrong with multiprocessing queue")
+                sys.exit(1)
             ansible_playbook.append(last_play)
         return yaml.dump(ansible_playbook, default_flow_style=False, sort_keys=False)
 
